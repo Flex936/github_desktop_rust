@@ -1,5 +1,6 @@
 pub mod branch;
 pub mod checkout;
+pub mod commit; // ← NEW
 pub mod history;
 pub mod status;
 

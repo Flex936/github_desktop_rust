@@ -12,7 +12,9 @@ impl GitEngine {
         repo: &Git2Repository,
     ) -> Result<WorkingDirectoryStatus, git2::Error> {
         let mut opts = StatusOptions::new();
-        opts.include_untracked(true)
+        // Explicitly force git to look at the working directory
+        opts.show(git2::StatusShow::IndexAndWorkdir)
+            .include_untracked(true)
             .recurse_untracked_dirs(true)
             .include_ignored(false)
             .include_unmodified(false)
@@ -27,17 +29,20 @@ impl GitEngine {
         for entry in statuses.iter() {
             let flags = entry.status();
 
-            if flags.is_empty()
-                || flags.contains(Status::CURRENT)
-                || flags.contains(Status::IGNORED)
-            {
+            // FIX: We removed `Status::CURRENT` because it equals 0 and causes
+            // `contains` to always return true, skipping all files!
+            // `is_empty()` safely checks if the file is unmodified.
+            if flags.is_empty() || flags.contains(Status::IGNORED) {
                 continue;
             }
 
-            let Ok(raw_path) = entry.path() else {
-                continue;
+            let path_bytes = entry.path_bytes();
+            let path_str = match std::str::from_utf8(path_bytes) {
+                Ok(s) => s,
+                Err(_) => continue,
             };
-            let path = PathBuf::from(raw_path);
+            let path = PathBuf::from(path_str);
+
             let submodule_status = submodule_status_for(repo, &path);
             let app_status =
                 build_app_file_status(repo, &entry, flags, &path, workdir, submodule_status);
