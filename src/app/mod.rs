@@ -9,7 +9,6 @@ use crate::models::commit::Commit;
 use crate::models::repository::Repository;
 use crate::models::status::WorkingDirectoryStatus;
 
-// Re-export so `main.rs` can still use `app::App`, `app::Message`, etc.
 pub use message::{GitSnapshot, Message};
 pub use update::update;
 pub use view::view;
@@ -24,10 +23,16 @@ pub struct App {
     pub error: Option<String>,
 
     // ── Commit panel state ────────────────────────────────────────────────
-    /// The one-line subject typed into the Summary field.
     pub commit_summary: String,
-    /// The optional multi-line body typed into the Description field.
     pub commit_description: String,
+
+    // ── Diff view state ───────────────────────────────────────────────────
+    /// The file the user clicked on in the sidebar; switches the main panel
+    /// from Commit History to the Diff view.
+    pub selected_file_path: Option<PathBuf>,
+    /// The rendered patch text for `selected_file_path`, populated
+    /// asynchronously after `FileClicked`.
+    pub current_diff: Option<String>,
 }
 
 impl App {
@@ -42,6 +47,8 @@ impl App {
             error: None,
             commit_summary: String::new(),
             commit_description: String::new(),
+            selected_file_path: None,
+            current_diff: None,
         }
     }
 }

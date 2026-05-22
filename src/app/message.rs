@@ -21,15 +21,16 @@ pub enum Message {
     CheckoutCompleted(Result<String, String>),
 
     // ── Commit panel ──────────────────────────────────────────────────────
-    /// The user edited the one-line summary field.
     CommitSummaryChanged(String),
-    /// The user edited the multi-line description field.
     CommitDescriptionChanged(String),
-    /// The user pressed the "Commit to <branch>" button.
     Commit,
-    /// Async result from `GitEngine::create_commit`.
-    /// `Ok` carries the new commit SHA as a hex string.
     CommitCompleted(Result<String, String>),
+
+    // ── Diff view ─────────────────────────────────────────────────────────
+    /// The user clicked a file row in the sidebar.
+    FileClicked(PathBuf),
+    /// Async result from `GitEngine::get_file_diff`.
+    DiffLoaded(Result<String, String>),
 }
 
 #[derive(Debug, Clone)]
